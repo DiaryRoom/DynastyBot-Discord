@@ -5,7 +5,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pprint
 
 # discord bot token
-TOKEN = "Njk2NTg5Mjk3NTQwNzkyMzMw.Xp935A.x-bOTxh97wgnQR0npERaaeAdjOs"
+TOKEN = ""
 
 # google API credentials
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
