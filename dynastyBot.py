@@ -3,9 +3,11 @@ import discord
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import pprint
+import json
 
 # discord bot token
-TOKEN = "Njk2NTg5Mjk3NTQwNzkyMzMw.Xp935A.x-bOTxh97wgnQR0npERaaeAdjOs"
+with open('token.json','r') as f:
+    TOKEN = json.load(f)["Token"]
 
 # google API credentials
 scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
@@ -40,39 +42,8 @@ async def on_message(message):
 
         msg = "Player(s) not found"
 
-        # if only looking up one player
-        if len(cmd) == 4:
-            
-            pos = []
-            if cmd[1] == "qb":
-                pos = data_qb
-            else:
-                pos = data_rb
-
-            for x in pos:
-                if x["Name"].split()[0] == cmd[2] and x["Name"].split()[1] == cmd[3]:
-
-                    curr_year = 2020
-                    status = x[str(curr_year)]
-
-                    full_contract = "***" + x["Name"].split()[0] + " " + x["Name"].split()[1] + ", " + x["Name"].split()[2] + "***\n"
-
-                    full_contract += (str(curr_year) + ": " + status + "\n")
-
-                    while True:
-                        if status == "UFA" or curr_year == 2025:
-                            msg = full_contract
-                            break
-
-                        curr_year += 1
-                        status = x[str(curr_year)]
-
-                        full_contract += (str(curr_year) + ": " + status + "\n")
-
-                    break
-
-        elif len(cmd) > 4:
-
+        # if valid command
+        if (len(cmd) >= 4 and len(cmd) % 2 == 0):
             pos = []
 
             if cmd[1] == "qb":
@@ -84,10 +55,17 @@ async def on_message(message):
 
             players = int((len(cmd) - 2) / 2)
 
-            # first player
+            invalid_name = False
+
+            # loops through all players in command
             for p in range(players):
+                # checks if name exists in sheet
+                found = False
+                # loops through data
                 for x in pos:
                     if x["Name"].split()[0] == cmd[2 + (p * 2)] and x["Name"].split()[1] == cmd[3 + (p * 2)]:
+
+                        found = True
 
                         curr_year = 2020
                         status = x[str(curr_year)]
@@ -107,11 +85,19 @@ async def on_message(message):
 
                             full_contract += (str(curr_year) + ": " + status + "\n")
 
-            msg = comp
+                if not found:
+                    invalid_name = True
+                    break
 
+            if invalid_name:
+                msg = "Error: invalid player name"
+            else:
+                msg = comp
+
+        # invalid command - no position or incomplete name(s)
         else:
             msg = "Error: command must consist of !contract [position] [first name] [last name]"
-
+       
         #msg = (sheet.cell(3,1).value).format(message)
 
         await message.channel.send(msg)
